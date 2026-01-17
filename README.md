@@ -1,2 +1,2 @@
 # claude-code-test
-Claud Code
+Claude Code
