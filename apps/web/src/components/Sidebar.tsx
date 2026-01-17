@@ -28,26 +28,26 @@ export default function Sidebar({ mode }: SidebarProps) {
   const navItems = mode === 'customer' ? customerNav : internalNav
 
   return (
-    <div className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
-      <div className="p-6 border-b border-gray-700">
-        <h1 className="text-xl font-bold">Stone Forest</h1>
-        <p className="text-sm text-gray-400 mt-1">
+    <div className="w-60 bg-surface border-r border-border-subtle min-h-screen flex flex-col">
+      <div className="p-8 border-b border-border-subtle">
+        <h1 className="text-h3 font-bold text-text-primary tracking-tight">Stone Forest</h1>
+        <p className="text-caption text-text-tertiary mt-1 uppercase tracking-wider">
           {mode === 'customer' ? 'Customer Portal' : 'Internal Tools'}
         </p>
       </div>
 
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-6">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`block px-4 py-2 rounded-lg transition-colors ${
+                  className={`block px-4 py-3 rounded-md transition-all duration-150 ${
                     isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-800'
+                      ? 'bg-white text-text-inverse font-medium'
+                      : 'text-text-secondary hover:bg-surface-raised hover:text-text-primary'
                   }`}
                 >
                   {item.label}
@@ -58,14 +58,14 @@ export default function Sidebar({ mode }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
-        <div className="text-sm text-gray-400">
-          <p>Mode: {mode === 'customer' ? 'Customer' : 'Internal'}</p>
+      <div className="p-6 border-t border-border-subtle">
+        <div className="text-caption text-text-tertiary">
+          <p className="uppercase tracking-wider mb-3">Mode: {mode === 'customer' ? 'Customer' : 'Internal'}</p>
           <Link
             href={mode === 'customer' ? '/internal/leads' : '/customer/dashboard'}
-            className="text-blue-400 hover:underline mt-2 block"
+            className="text-text-primary hover:text-white transition-colors duration-150 block text-body-sm"
           >
-            Switch to {mode === 'customer' ? 'Internal' : 'Customer'}
+            Switch to {mode === 'customer' ? 'Internal' : 'Customer'} →
           </Link>
         </div>
       </div>

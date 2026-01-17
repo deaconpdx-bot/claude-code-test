@@ -1,4 +1,7 @@
 import PageHeader from '@/components/PageHeader'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table'
+import Badge from '@/components/ui/Badge'
+import Card from '@/components/ui/Card'
 import inventoryData from '@/mock-data/inventory.json'
 
 export default function InventoryPage() {
@@ -9,86 +12,58 @@ export default function InventoryPage() {
         subtitle="Track stock levels and run rates"
       />
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                SKU
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Product
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Current Stock
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Min Stock
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Run Rate/Day
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Days Left
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
+      <Card className="p-0 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>SKU</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead className="text-right">Current Stock</TableHead>
+              <TableHead className="text-right">Min Stock</TableHead>
+              <TableHead className="text-right">Run Rate/Day</TableHead>
+              <TableHead className="text-right">Days Left</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {inventoryData.map((item) => {
-              const statusColors = {
-                critical: 'bg-red-100 text-red-800',
-                low: 'bg-orange-100 text-orange-800',
-                healthy: 'bg-green-100 text-green-800',
+              const badgeVariant = {
+                critical: 'active' as const,
+                low: 'default' as const,
+                healthy: 'muted' as const,
               }
 
-              const daysColors = {
-                critical: 'text-red-600 font-bold',
-                low: 'text-orange-600 font-semibold',
-                healthy: 'text-gray-900',
+              const daysStyle = {
+                critical: 'text-white font-bold',
+                low: 'text-text-primary font-semibold',
+                healthy: 'text-text-secondary',
               }
 
               return (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {item.sku}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {item.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {item.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                    {item.currentStock.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
-                    {item.minStock.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
-                    {item.runRate}
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${daysColors[item.status as keyof typeof daysColors]}`}>
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.sku}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell className="text-text-secondary">{item.category}</TableCell>
+                  <TableCell className="text-right">{item.currentStock.toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-text-secondary">{item.minStock.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{item.runRate}</TableCell>
+                  <TableCell className={`text-right ${daysStyle[item.status as keyof typeof daysStyle]}`}>
                     {item.daysRemaining.toFixed(1)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[item.status as keyof typeof statusColors]}`}>
-                      {item.status === 'critical' && '🔴 Critical'}
-                      {item.status === 'low' && '⚠️ Low'}
-                      {item.status === 'healthy' && '✓ Healthy'}
-                    </span>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={badgeVariant[item.status as keyof typeof badgeVariant]}>
+                      {item.status === 'critical' && 'Critical'}
+                      {item.status === 'low' && 'Low'}
+                      {item.status === 'healthy' && 'Healthy'}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   )
 }

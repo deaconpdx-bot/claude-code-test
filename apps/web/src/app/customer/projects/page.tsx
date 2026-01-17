@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
+import Card from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
 import projectsData from '@/mock-data/projects.json'
 
 export default function ProjectsPage() {
@@ -12,10 +14,10 @@ export default function ProjectsPage() {
 
       <div className="grid grid-cols-1 gap-6">
         {projectsData.map((project) => {
-          const statusColors = {
-            in_progress: 'bg-blue-100 text-blue-800',
-            awaiting_approval: 'bg-orange-100 text-orange-800',
-            completed: 'bg-green-100 text-green-800',
+          const badgeVariant = {
+            in_progress: 'default' as const,
+            awaiting_approval: 'active' as const,
+            completed: 'muted' as const,
           }
 
           const statusLabels = {
@@ -28,48 +30,50 @@ export default function ProjectsPage() {
             <Link
               key={project.id}
               href={`/customer/projects/${project.id}/files`}
-              className="block bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              className="block"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {project.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {project.customer}
-                  </p>
+              <Card hover>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-h3 font-semibold text-text-primary">
+                      {project.name}
+                    </h3>
+                    <p className="text-body-sm text-text-secondary mt-2">
+                      {project.customer}
+                    </p>
+                  </div>
+                  <Badge variant={badgeVariant[project.status as keyof typeof badgeVariant]}>
+                    {statusLabels[project.status as keyof typeof statusLabels]}
+                  </Badge>
                 </div>
-                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColors[project.status as keyof typeof statusColors]}`}>
-                  {statusLabels[project.status as keyof typeof statusLabels]}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                  <p className="text-xs text-gray-500">Files</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {project.filesCount}
-                  </p>
+                <div className="grid grid-cols-4 gap-6 pt-6 border-t border-border">
+                  <div>
+                    <p className="text-caption text-text-tertiary uppercase tracking-wider">Files</p>
+                    <p className="text-h3 font-semibold text-text-primary mt-2">
+                      {project.filesCount}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-caption text-text-tertiary uppercase tracking-wider">Pending</p>
+                    <p className="text-h3 font-semibold text-text-primary mt-2">
+                      {project.pendingApprovals}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-caption text-text-tertiary uppercase tracking-wider">ETA</p>
+                    <p className="text-body font-medium text-text-primary mt-2">
+                      {new Date(project.eta).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-caption text-text-tertiary uppercase tracking-wider">Created</p>
+                    <p className="text-body font-medium text-text-secondary mt-2">
+                      {new Date(project.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">Pending Approvals</p>
-                  <p className="text-lg font-semibold text-orange-600">
-                    {project.pendingApprovals}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">ETA</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {new Date(project.eta).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Created</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {new Date(project.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
+              </Card>
             </Link>
           )
         })}

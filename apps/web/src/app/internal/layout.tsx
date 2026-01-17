@@ -6,9 +6,9 @@ export default function InternalLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <Sidebar mode="internal" />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-12 max-w-7xl">
         {children}
       </main>
     </div>
