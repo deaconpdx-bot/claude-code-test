@@ -1,0 +1,62 @@
+{
+  "proj-1": [
+    {
+      "id": "file-1",
+      "name": "logo-primary-color.ai",
+      "version": "v3",
+      "uploadedBy": "Designer Jane",
+      "uploadedAt": "2026-01-15T10:30:00Z",
+      "size": "2.4 MB",
+      "status": "pending_approval",
+      "approvals": []
+    },
+    {
+      "id": "file-2",
+      "name": "business-card-front.pdf",
+      "version": "v2",
+      "uploadedBy": "Designer Jane",
+      "uploadedAt": "2026-01-14T14:20:00Z",
+      "size": "1.1 MB",
+      "status": "approved",
+      "approvals": [
+        {
+          "approvedBy": "Client John",
+          "approvedAt": "2026-01-14T16:45:00Z",
+          "comment": "Looks great!"
+        }
+      ]
+    },
+    {
+      "id": "file-3",
+      "name": "letterhead-template.pdf",
+      "version": "v1",
+      "uploadedBy": "Designer Mike",
+      "uploadedAt": "2026-01-13T09:15:00Z",
+      "size": "856 KB",
+      "status": "pending_approval",
+      "approvals": []
+    },
+    {
+      "id": "file-4",
+      "name": "brand-guidelines.pdf",
+      "version": "v1",
+      "uploadedBy": "Designer Jane",
+      "uploadedAt": "2026-01-12T11:00:00Z",
+      "size": "4.2 MB",
+      "status": "pending_approval",
+      "approvals": []
+    }
+  ],
+  "proj-2": [
+    {
+      "id": "file-5",
+      "name": "catalog-cover.pdf",
+      "version": "v1",
+      "uploadedBy": "Designer Sarah",
+      "uploadedAt": "2026-01-16T08:30:00Z",
+      "size": "3.1 MB",
+      "status": "pending_approval",
+      "approvals": []
+    }
+  ]
+}

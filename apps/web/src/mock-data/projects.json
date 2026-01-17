@@ -1,0 +1,42 @@
+[
+  {
+    "id": "proj-1",
+    "name": "ACME Brand Refresh 2026",
+    "customer": "ACME Corporation",
+    "status": "in_progress",
+    "eta": "2026-02-15",
+    "filesCount": 12,
+    "pendingApprovals": 3,
+    "createdAt": "2026-01-05"
+  },
+  {
+    "id": "proj-2",
+    "name": "Product Catalog Q1",
+    "customer": "GlobalTech Industries",
+    "status": "awaiting_approval",
+    "eta": "2026-01-25",
+    "filesCount": 8,
+    "pendingApprovals": 8,
+    "createdAt": "2025-12-20"
+  },
+  {
+    "id": "proj-3",
+    "name": "Marketing Collateral Set",
+    "customer": "ACME Corporation",
+    "status": "completed",
+    "eta": "2026-01-10",
+    "filesCount": 5,
+    "pendingApprovals": 0,
+    "createdAt": "2025-12-15"
+  },
+  {
+    "id": "proj-4",
+    "name": "Event Posters - Spring Launch",
+    "customer": "Urban Dynamics LLC",
+    "status": "in_progress",
+    "eta": "2026-02-01",
+    "filesCount": 4,
+    "pendingApprovals": 2,
+    "createdAt": "2026-01-10"
+  }
+]
