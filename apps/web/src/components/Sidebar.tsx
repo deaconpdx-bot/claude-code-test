@@ -17,6 +17,7 @@ export default function Sidebar({ mode }: SidebarProps) {
 
   const customerNav: NavItem[] = [
     { label: 'Dashboard', href: '/customer/dashboard' },
+    { label: 'Invoices', href: '/customer/invoices' },
     { label: 'Inventory', href: '/customer/inventory' },
     { label: 'Projects', href: '/customer/projects' },
   ]

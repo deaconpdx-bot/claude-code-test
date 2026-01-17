@@ -9,7 +9,8 @@ This is a **front-end only** prototype built with Next.js. It uses mock JSON dat
 ## Features
 
 ### Customer Portal
-- **Dashboard**: Overview cards showing inventory alerts, active projects, and pending approvals
+- **Dashboard**: Overview cards showing inventory alerts, active projects, pending approvals, and invoice metrics
+- **Invoices** (NEW - Sprint 001): Invoice management with payment tracking, deposit indicators, and detailed invoice view
 - **Inventory**: Table view with low-stock indicators and run rate calculations
 - **Projects**: List of projects with status and ETA
 - **Project Files**: File management with upload UI and approval workflow
@@ -60,7 +61,7 @@ This is a **front-end only** prototype built with Next.js. It uses mock JSON dat
 - The app starts at `/login`
 - After clicking "Sign In", you'll be redirected to `/customer/dashboard`
 - Use the sidebar to navigate between:
-  - Customer Portal pages (Dashboard, Inventory, Projects)
+  - Customer Portal pages (Dashboard, Invoices, Inventory, Projects)
   - Internal Tools (Leads)
 - Switch between Customer and Internal modes using the link at the bottom of the sidebar
 
@@ -68,6 +69,7 @@ This is a **front-end only** prototype built with Next.js. It uses mock JSON dat
 
 All data is stored in JSON files in `src/mock-data/`:
 - `dashboard.json` - Dashboard metrics and alerts
+- `invoices.json` - Invoices with payment tracking (NEW - Sprint 001)
 - `inventory.json` - Inventory items with stock levels
 - `projects.json` - Project list
 - `files.json` - File assets for projects
@@ -99,9 +101,21 @@ apps/web/
 ## Features Demonstrated
 
 ### Customer Dashboard
-- Summary cards with key metrics
+- Summary cards with key metrics (inventory, projects, approvals)
+- Invoice metrics section (paid, due soon, due today, past due)
 - Alert notifications with severity levels
 - Clean, modern card-based layout
+
+### Invoice Management (Sprint 001)
+- Invoice listing table with status badges
+- Payment tracking (total, paid, balance due)
+- Deposit indicators (required/paid)
+- Detailed invoice modal with:
+  - Full invoice breakdown
+  - Payment history
+  - Deposit information
+  - Status tracking
+- Monochrome status badges (Paid, Sent, Overdue)
 
 ### Inventory Management
 - Data table with sorting and filtering potential
@@ -141,3 +155,35 @@ npm run start
 ```
 
 This will create an optimized build in the `.next` directory and start a production server
+
+---
+
+## Documentation (Sprint 001)
+
+Comprehensive technical documentation is available in `/docs/`:
+
+- **Data Model** (`/docs/dm/020_DATA_MODEL.md`)
+  - Invoice database schema (Supabase/PostgreSQL)
+  - Invoice events audit log
+  - Relationship diagrams
+
+- **RLS Policies** (`/docs/dm/030_RLS_POLICIES.md`)
+  - Row level security for customer data isolation
+  - Internal staff access policies
+  - Helper functions for authentication
+
+- **n8n Integration** (`/docs/dm/070_TRACKING_N8N_INTEGRATION.md`)
+  - Automated invoice reminder workflows
+  - Email notification specs
+  - Event logging integration
+
+- **Sprint Deliverables** (`/docs/deliverables/sprint_001_invoice_mvp.md`)
+  - Complete sprint summary
+  - Features implemented
+  - Testing checklist
+  - Known limitations
+
+### Future Sprints
+
+- Sprint 002: Proof Approval MVP (file uploads, version control, approval workflow)
+- Sprint 003: Tracking MVP (shipment tracking, delivery notifications)
