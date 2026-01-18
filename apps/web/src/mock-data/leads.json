@@ -1,0 +1,62 @@
+[
+  {
+    "id": "lead-1",
+    "companyName": "Sunrise Cafe Group",
+    "contactName": "Maria Chen",
+    "email": "maria.chen@sunrisecafe.com",
+    "phone": "(555) 123-4567",
+    "source": "Website Form",
+    "status": "new",
+    "interestedIn": "Menu Design",
+    "estimatedValue": "$5,000",
+    "createdAt": "2026-01-16"
+  },
+  {
+    "id": "lead-2",
+    "companyName": "TechFlow Solutions",
+    "contactName": "David Park",
+    "email": "d.park@techflow.io",
+    "phone": "(555) 234-5678",
+    "source": "Referral",
+    "status": "contacted",
+    "interestedIn": "Corporate Branding Package",
+    "estimatedValue": "$15,000",
+    "createdAt": "2026-01-14"
+  },
+  {
+    "id": "lead-3",
+    "companyName": "Green Valley Farms",
+    "contactName": "Jennifer Walsh",
+    "email": "j.walsh@greenvalley.com",
+    "phone": "(555) 345-6789",
+    "source": "LinkedIn",
+    "status": "qualified",
+    "interestedIn": "Product Packaging",
+    "estimatedValue": "$8,500",
+    "createdAt": "2026-01-12"
+  },
+  {
+    "id": "lead-4",
+    "companyName": "Metro Real Estate",
+    "contactName": "Robert Kim",
+    "email": "rkim@metrore.com",
+    "phone": "(555) 456-7890",
+    "source": "Cold Outreach",
+    "status": "proposal_sent",
+    "interestedIn": "Marketing Materials",
+    "estimatedValue": "$12,000",
+    "createdAt": "2026-01-08"
+  },
+  {
+    "id": "lead-5",
+    "companyName": "FitLife Gym",
+    "contactName": "Sarah Johnson",
+    "email": "sarah@fitlifegym.com",
+    "phone": "(555) 567-8901",
+    "source": "Website Form",
+    "status": "new",
+    "interestedIn": "Signage & Posters",
+    "estimatedValue": "$3,500",
+    "createdAt": "2026-01-17"
+  }
+]

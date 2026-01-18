@@ -1,0 +1,68 @@
+[
+  {
+    "id": "1",
+    "sku": "POST-001",
+    "name": "Glossy Photo Paper 8.5x11",
+    "category": "Paper Stock",
+    "currentStock": 150,
+    "minStock": 500,
+    "runRate": 120,
+    "daysRemaining": 1.25,
+    "status": "critical"
+  },
+  {
+    "id": "2",
+    "sku": "POST-002",
+    "name": "Matte Card Stock 12x18",
+    "category": "Paper Stock",
+    "currentStock": 800,
+    "minStock": 300,
+    "runRate": 45,
+    "daysRemaining": 17.8,
+    "status": "healthy"
+  },
+  {
+    "id": "3",
+    "sku": "INK-BLK-001",
+    "name": "Black Ink Cartridge XL",
+    "category": "Ink",
+    "currentStock": 5,
+    "minStock": 10,
+    "runRate": 2,
+    "daysRemaining": 2.5,
+    "status": "low"
+  },
+  {
+    "id": "4",
+    "sku": "INK-CMY-001",
+    "name": "Color Ink Cartridge Set",
+    "category": "Ink",
+    "currentStock": 12,
+    "minStock": 10,
+    "runRate": 3,
+    "daysRemaining": 4,
+    "status": "healthy"
+  },
+  {
+    "id": "5",
+    "sku": "ENV-001",
+    "name": "White Envelopes #10",
+    "category": "Envelopes",
+    "currentStock": 2000,
+    "minStock": 5000,
+    "runRate": 400,
+    "daysRemaining": 5,
+    "status": "low"
+  },
+  {
+    "id": "6",
+    "sku": "LAM-001",
+    "name": "Laminating Pouches 8.5x11",
+    "category": "Finishing",
+    "currentStock": 450,
+    "minStock": 200,
+    "runRate": 30,
+    "daysRemaining": 15,
+    "status": "healthy"
+  }
+]

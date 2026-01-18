@@ -1,0 +1,25 @@
+{
+  "inventoryAlerts": 3,
+  "activeProjects": 3,
+  "pendingApprovals": 13,
+  "alerts": [
+    {
+      "id": "alert-1",
+      "type": "critical",
+      "message": "Glossy Photo Paper 8.5x11 critically low - 1.25 days remaining",
+      "timestamp": "2026-01-17T08:00:00Z"
+    },
+    {
+      "id": "alert-2",
+      "type": "warning",
+      "message": "Black Ink Cartridge XL below minimum stock",
+      "timestamp": "2026-01-17T07:30:00Z"
+    },
+    {
+      "id": "alert-3",
+      "type": "info",
+      "message": "Project 'Product Catalog Q1' awaiting approval",
+      "timestamp": "2026-01-16T15:20:00Z"
+    }
+  ]
+}
