@@ -10,10 +10,6 @@
   body {
     @apply bg-background text-text-primary antialiased;
   }
-
-  html {
-    @apply dark;
-  }
 }
 
 @layer utilities {
