@@ -1,0 +1,134 @@
+name: PR Artifact Enforcement
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Body
+        id: check_body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+            const prTitle = context.payload.pull_request.title;
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            const errors = [];
+            const warnings = [];
+            
+            // Check 1: Spec link required
+            const hasSpecLink = /\/docs\/APP_SPEC\.md/i.test(prBody) || 
+                                /spec:?\s*https?:\/\//i.test(prBody) ||
+                                /\[APP_SPEC\]/i.test(prBody);
+            
+            if (!hasSpecLink) {
+              errors.push('❌ **Missing APP_SPEC link**: PR must reference section in /docs/APP_SPEC.md');
+            }
+            
+            // Check 2: DB changes require migrations
+            const hasMigration = files.data.some(f => f.filename.startsWith('supabase/migrations/'));
+            const hasSchemaChange = files.data.some(f => 
+              f.filename.includes('schema') || 
+              f.filename.includes('supabase') ||
+              prBody.toLowerCase().includes('rls') ||
+              prBody.toLowerCase().includes('migration')
+            );
+            
+            if (hasSchemaChange && !hasMigration) {
+              errors.push('❌ **Missing migration file**: Database changes require migration in supabase/migrations/');
+            }
+            
+            // Check 3: Rollback plan for migrations
+            if (hasMigration) {
+              const hasRollback = /rollback/i.test(prBody) || 
+                                  /down.*migration/i.test(prBody) ||
+                                  /revert/i.test(prBody);
+              
+              if (!hasRollback) {
+                errors.push('❌ **Missing rollback plan**: Migration PRs must include rollback strategy');
+              }
+            }
+            
+            // Check 4: Risk level declared
+            const hasRiskLevel = /risk:?\s*(low|medium|high)/i.test(prBody);
+            if (!hasRiskLevel) {
+              warnings.push('⚠️  **Risk level not declared**: Add "Risk: low/medium/high" to PR description');
+            }
+            
+            // Check 5: Test evidence
+            const hasTests = /test/i.test(prBody) || 
+                            files.data.some(f => f.filename.includes('.test.') || f.filename.includes('.spec.'));
+            
+            if (!hasTests && !prTitle.toLowerCase().includes('docs')) {
+              warnings.push('⚠️  **No test evidence**: Consider adding tests or verification steps');
+            }
+            
+            // Check 6: Verification commands for DB changes
+            if (hasMigration) {
+              const hasVerification = /verify|query|test.*database/i.test(prBody);
+              if (!hasVerification) {
+                warnings.push('⚠️  **No verification commands**: Include SQL queries to verify migration worked');
+              }
+            }
+            
+            // Post results
+            if (errors.length > 0 || warnings.length > 0) {
+              let comment = '## 🔍 PR Artifact Validation\n\n';
+              
+              if (errors.length > 0) {
+                comment += '### ❌ Blocking Issues\n\n' + errors.join('\n') + '\n\n';
+                comment += '**This PR cannot be merged until these issues are resolved.**\n\n';
+              }
+              
+              if (warnings.length > 0) {
+                comment += '### ⚠️  Warnings\n\n' + warnings.join('\n') + '\n\n';
+              }
+              
+              comment += '---\n\n';
+              comment += '**Required Artifacts:**\n';
+              comment += '- [ ] Link to APP_SPEC.md section\n';
+              comment += '- [ ] Migration file (if DB changes)\n';
+              comment += '- [ ] Rollback plan (if migration)\n';
+              comment += '- [ ] Risk level declared\n';
+              comment += '- [ ] Test coverage or verification steps\n';
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: comment
+              });
+              
+              if (errors.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  labels: ['missing-artifacts']
+                });
+                
+                core.setFailed('PR is missing required artifacts. See comment for details.');
+              }
+            } else {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: ['artifacts-validated']
+              });
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: '✅ **All required artifacts present** - PR validation passed'
+              });
+            }
