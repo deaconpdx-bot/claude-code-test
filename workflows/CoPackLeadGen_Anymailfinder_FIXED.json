@@ -1,0 +1,395 @@
+{
+  "name": "CoPackLeadGen_Anymailfinder_FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [400, 300],
+      "id": "trigger-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    searchTerms: [\n      \"food co-packer\",\n      \"contract food manufacturing\",\n      \"private label food manufacturer\",\n      \"food toll manufacturing\",\n      \"contract packaging services\",\n      \"food processing facility\",\n      \"cannabis co-packer\",\n      \"CBD contract manufacturing\",\n      \"hemp processing facility\",\n      \"cannabis manufacturing facility\",\n      \"edibles manufacturing\",\n      \"cannabis extract processing\"\n    ],\n    primaryStates: [\n      \"California\", \"Colorado\", \"Oregon\", \"Washington\",\n      \"Illinois\", \"Michigan\", \"Massachusetts\", \"New York\",\n      \"Florida\", \"Texas\", \"Pennsylvania\", \"Ohio\",\n      \"Arizona\", \"Nevada\", \"New Jersey\", \"Connecticut\"\n    ],\n    majorCities: [\n      \"Los Angeles, CA\", \"San Francisco, CA\", \"Sacramento, CA\",\n      \"Denver, CO\", \"Colorado Springs, CO\",\n      \"Portland, OR\", \"Seattle, WA\",\n      \"Chicago, IL\", \"Detroit, MI\",\n      \"Boston, MA\", \"New York, NY\",\n      \"Miami, FL\", \"Tampa, FL\",\n      \"Houston, TX\", \"Dallas, TX\", \"Austin, TX\",\n      \"Philadelphia, PA\", \"Pittsburgh, PA\",\n      \"Columbus, OH\", \"Cincinnati, OH\",\n      \"Phoenix, AZ\", \"Las Vegas, NV\",\n      \"Newark, NJ\", \"Hartford, CT\"\n    ]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [620, 300],
+      "id": "params-001",
+      "name": "Focused Search Parameters"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "Split Into Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [840, 300],
+      "id": "batch-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const searchTerms = $json.searchTerms;\nconst primaryStates = $json.primaryStates;\nconst majorCities = $json.majorCities;\nconst combinations = [];\n\n// Create state-level searches\nfor (const state of primaryStates) {\n  for (const term of searchTerms) {\n    combinations.push({\n      searchQuery: term,\n      searchLocation: state,\n      searchType: 'state',\n      fullQuery: `${term} in ${state}`\n    });\n  }\n}\n\n// Create city-level searches\nfor (const city of majorCities) {\n  for (const term of searchTerms.slice(0, 6)) {\n    combinations.push({\n      searchQuery: term,\n      searchLocation: city,\n      searchType: 'city',\n      fullQuery: `${term} ${city}`\n    });\n  }\n}\n\n// Shuffle combinations\nfor (let i = combinations.length - 1; i > 0; i--) {\n  const j = Math.floor(Math.random() * (i + 1));\n  [combinations[i], combinations[j]] = [combinations[j], combinations[i]];\n}\n\nconsole.log(`Created ${combinations.length} search combinations`);\nreturn combinations;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1060, 300],
+      "id": "combos-001",
+      "name": "Create Search Combinations"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1280, 300],
+      "id": "wait-001",
+      "name": "Wait 30 Seconds",
+      "webhookId": "wait-webhook-001"
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search.json?engine=google_local&q={{$json.fullQuery}}&hl=en&gl=us&num=10",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 300],
+      "id": "serpapi-local-001",
+      "name": "SerpAPI Local Search",
+      "retryOnFail": true,
+      "credentials": {
+        "serpApi": {
+          "id": "RPGIb2ztNIhm8pKB",
+          "name": "SerpAPI account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store search metadata before processing\nconst searchQuery = $json.searchQuery || $input.first().json.searchQuery || '';\nconst searchLocation = $json.searchLocation || $input.first().json.searchLocation || '';\nconst searchType = $json.searchType || $input.first().json.searchType || '';\n\nconst rawData = $input.first().json;\nconst data = rawData.local_results || [];\nconst results = [];\n\nfor (const result of data) {\n  const name = result.title || '';\n  const place_id = result.place_id || '';\n  const phone = result.phone || '';\n  const website = result.website || result.link || '';\n  const email = result.email || '';\n  const fullAddress = result.address || '';\n  const rating = result.rating || null;\n  const reviewCount = result.reviews || null;\n\n  // Extract domain from website if available\n  let domain_clean = '';\n  if (website) {\n    domain_clean = website\n      .replace(/^https?:\\/\\/(www\\.)?/i, '')\n      .split('/')[0]\n      .split('?')[0]\n      .split('#')[0]\n      .trim();\n  }\n\n  results.push({\n    json: {\n      place_id,\n      name,\n      phone,\n      website,\n      domain_clean,\n      has_domain: Boolean(domain_clean),\n      email,\n      fullAddress,\n      rating,\n      reviewCount,\n      coPackerCategory: 'food',\n      coPackerType: 'food',\n      searchQuery,\n      searchLocation,\n      searchType,\n      confidence: 0.85,\n      contactPriority: 'medium',\n      estimatedSize: 'medium',\n      sustainabilityMatch: true,\n      keyServices: ['packaging', 'labeling'],\n      domain_source: domain_clean ? 'serpapi_local' : 'none'\n    }\n  });\n}\n\nconsole.log(`Processed ${results.length} results from SerpAPI`);\nreturn results;"
+      },
+      "name": "Process SerpAPI Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1720, 300],
+      "id": "process-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Advanced Deduplication\nconst seen = new Set();\nconst unique = [];\n\nfor (const item of $input.all()) {\n  const name = (item.json.name || '').trim();\n  const phone = (item.json.phone || '').trim();\n  const address = (item.json.fullAddress || '').trim();\n\n  if (!name) continue;\n\n  const key = `${name.toLowerCase()}-${phone}-${address.toLowerCase()}`;\n  if (seen.has(key)) continue;\n\n  unique.push(item);\n  seen.add(key);\n}\n\nconsole.log(`Deduplication: ${$input.all().length} -> ${unique.length} records`);\nreturn unique;"
+      },
+      "name": "Deduplicate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1940, 300],
+      "id": "dedup-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_domain }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Has Domain?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2160, 300],
+      "id": "if-domain-001"
+    },
+    {
+      "parameters": {
+        "url": "=https://serpapi.com/search.json?engine=google&q={{ encodeURIComponent($json.name + ' ' + $json.fullAddress + ' official website') }}&num=5",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "serpApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2400, 500],
+      "id": "serpapi-google-001",
+      "name": "Find Website via Google",
+      "retryOnFail": true,
+      "credentials": {
+        "serpApi": {
+          "id": "RPGIb2ztNIhm8pKB",
+          "name": "SerpAPI account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract domain from Google search results\nconst searchResults = $json.organic_results || [];\nconst previousItem = $('Has Domain?').item.json;\n\n// Sites to skip\nconst skipDomains = [\n  'facebook.com', 'linkedin.com', 'twitter.com', 'instagram.com',\n  'yelp.com', 'yellowpages.com', 'bbb.org', 'mapquest.com',\n  'manta.com', 'dnb.com', 'zoominfo.com', 'crunchbase.com',\n  'bloomberg.com', 'google.com', 'youtube.com', 'tiktok.com'\n];\n\nlet domain_clean = '';\nlet website = '';\n\nfor (const result of searchResults) {\n  const link = result.link || '';\n  if (!link) continue;\n\n  // Extract domain\n  const domain = link\n    .replace(/^https?:\\/\\/(www\\.)?/i, '')\n    .split('/')[0]\n    .toLowerCase();\n\n  // Skip unwanted domains\n  if (skipDomains.some(skip => domain.includes(skip))) {\n    continue;\n  }\n\n  domain_clean = domain;\n  website = link.split('?')[0];\n  break;\n}\n\nreturn {\n  json: {\n    ...previousItem,\n    website: website || previousItem.website,\n    domain_clean: domain_clean || previousItem.domain_clean,\n    has_domain: Boolean(domain_clean),\n    domain_source: domain_clean ? 'google_search' : 'not_found'\n  }\n};"
+      },
+      "name": "Extract Domain",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2620, 500],
+      "id": "extract-001"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge All Records",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [2840, 300],
+      "id": "merge-001"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_domain }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Has Domain for Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [3060, 300],
+      "id": "if-email-001"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anymailfinder.com/v5.1/find-email/company",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer zbGCNtxUTvYDmayQSGNLmAxi"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ domain: $json.domain_clean, limit: 10 }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3300, 200],
+      "id": "anymailfinder-001",
+      "name": "AnyEmailFinder"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge email data with company data\nconst emailResponse = $json || {};\nconst companyData = $('Has Domain for Email?').item.json;\n\n// Extract email from response\nconst emails = emailResponse.emails || emailResponse.valid_emails || [];\nconst firstEmail = emails[0] || {};\n\nconst contactEmail = typeof firstEmail === 'string' ? firstEmail : (firstEmail.email || '');\nconst emailConfidence = firstEmail.confidence || emailResponse.confidence || 0;\nconst firstName = firstEmail.first_name || emailResponse.first_name || '';\nconst lastName = firstEmail.last_name || emailResponse.last_name || '';\nconst position = firstEmail.position || emailResponse.position || '';\n\n// Determine email status\nlet emailStatus = 'NO_EMAIL_FOUND';\nif (contactEmail) {\n  emailStatus = 'EMAIL_FOUND';\n} else if (emailResponse.email_status) {\n  emailStatus = emailResponse.email_status.toUpperCase();\n}\n\nreturn {\n  json: {\n    ...companyData,\n    contactEmail,\n    emailConfidence,\n    contactFirstName: firstName,\n    contactLastName: lastName,\n    contactPosition: position,\n    emailStatus,\n    emailFoundDate: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Merge Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 200],
+      "id": "merge-email-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Add email status for records without domain\nconst companyData = $json;\n\nreturn {\n  json: {\n    ...companyData,\n    contactEmail: '',\n    emailConfidence: 0,\n    contactFirstName: '',\n    contactLastName: '',\n    contactPosition: '',\n    emailStatus: companyData.has_domain ? 'SKIPPED' : 'NO_DOMAIN',\n    emailFoundDate: ''\n  }\n};"
+      },
+      "name": "Mark No Domain",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 400],
+      "id": "no-domain-001"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "name": "Merge Final",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [3740, 300],
+      "id": "merge-final-001"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XEkFjZdnKbpYyuaKtHxdBy8I79ag6Oo93G3cv2sfdRM",
+          "mode": "list",
+          "cachedResultName": "ANYTIMELEADS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XEkFjZdnKbpYyuaKtHxdBy8I79ag6Oo93G3cv2sfdRM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XEkFjZdnKbpYyuaKtHxdBy8I79ag6Oo93G3cv2sfdRM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "place_id": "={{ $json.place_id }}",
+            "name": "={{ $json.name }}",
+            "phone": "={{ $json.phone }}",
+            "website": "={{ $json.website }}",
+            "domain_clean": "={{ $json.domain_clean }}",
+            "contactEmail": "={{ $json.contactEmail }}",
+            "contactFirstName": "={{ $json.contactFirstName }}",
+            "contactLastName": "={{ $json.contactLastName }}",
+            "contactPosition": "={{ $json.contactPosition }}",
+            "emailConfidence": "={{ $json.emailConfidence }}",
+            "emailStatus": "={{ $json.emailStatus }}",
+            "fullAddress": "={{ $json.fullAddress }}",
+            "rating": "={{ $json.rating }}",
+            "reviewCount": "={{ $json.reviewCount }}",
+            "coPackerCategory": "={{ $json.coPackerCategory }}",
+            "searchQuery": "={{ $json.searchQuery }}",
+            "searchLocation": "={{ $json.searchLocation }}",
+            "domain_source": "={{ $json.domain_source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "place_id", "displayName": "place_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "name", "displayName": "name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "phone", "displayName": "phone", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "website", "displayName": "website", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "domain_clean", "displayName": "domain_clean", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "contactEmail", "displayName": "contactEmail", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "contactFirstName", "displayName": "contactFirstName", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "contactLastName", "displayName": "contactLastName", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "contactPosition", "displayName": "contactPosition", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "emailConfidence", "displayName": "emailConfidence", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "emailStatus", "displayName": "emailStatus", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "fullAddress", "displayName": "fullAddress", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "rating", "displayName": "rating", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "reviewCount", "displayName": "reviewCount", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "coPackerCategory", "displayName": "coPackerCategory", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "searchQuery", "displayName": "searchQuery", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "searchLocation", "displayName": "searchLocation", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true},
+            {"id": "domain_source", "displayName": "domain_source", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [3960, 300],
+      "id": "sheets-001",
+      "name": "Save to Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "sj2vVMuzdxDQ0ljc",
+          "name": "Google Sheets account 6"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{"node": "Focused Search Parameters", "type": "main", "index": 0}]]
+    },
+    "Focused Search Parameters": {
+      "main": [[{"node": "Split Into Batches", "type": "main", "index": 0}]]
+    },
+    "Split Into Batches": {
+      "main": [[{"node": "Create Search Combinations", "type": "main", "index": 0}]]
+    },
+    "Create Search Combinations": {
+      "main": [[{"node": "Wait 30 Seconds", "type": "main", "index": 0}]]
+    },
+    "Wait 30 Seconds": {
+      "main": [[{"node": "SerpAPI Local Search", "type": "main", "index": 0}]]
+    },
+    "SerpAPI Local Search": {
+      "main": [[{"node": "Process SerpAPI Results", "type": "main", "index": 0}]]
+    },
+    "Process SerpAPI Results": {
+      "main": [[{"node": "Deduplicate", "type": "main", "index": 0}]]
+    },
+    "Deduplicate": {
+      "main": [[{"node": "Has Domain?", "type": "main", "index": 0}]]
+    },
+    "Has Domain?": {
+      "main": [
+        [{"node": "Merge All Records", "type": "main", "index": 0}],
+        [{"node": "Find Website via Google", "type": "main", "index": 0}]
+      ]
+    },
+    "Find Website via Google": {
+      "main": [[{"node": "Extract Domain", "type": "main", "index": 0}]]
+    },
+    "Extract Domain": {
+      "main": [[{"node": "Merge All Records", "type": "main", "index": 1}]]
+    },
+    "Merge All Records": {
+      "main": [[{"node": "Has Domain for Email?", "type": "main", "index": 0}]]
+    },
+    "Has Domain for Email?": {
+      "main": [
+        [{"node": "AnyEmailFinder", "type": "main", "index": 0}],
+        [{"node": "Mark No Domain", "type": "main", "index": 0}]
+      ]
+    },
+    "AnyEmailFinder": {
+      "main": [[{"node": "Merge Email Data", "type": "main", "index": 0}]]
+    },
+    "Merge Email Data": {
+      "main": [[{"node": "Merge Final", "type": "main", "index": 0}]]
+    },
+    "Mark No Domain": {
+      "main": [[{"node": "Merge Final", "type": "main", "index": 1}]]
+    },
+    "Merge Final": {
+      "main": [[{"node": "Save to Google Sheets", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

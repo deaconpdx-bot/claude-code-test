@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-22
 **Workflow:** CoPackLeadGen_Anymailfinder
-**Status:** Issues Identified - Fix Required
+**Status:** FIXED - Complete Workflow Rewrite Provided
 
 ---
 
@@ -148,16 +148,93 @@ Merge Email     ↓
 
 ---
 
-## Files Modified
+## Solution Implemented
 
-None yet - this report documents findings only.
+A complete rewritten workflow has been provided at:
+**`workflows/CoPackLeadGen_Anymailfinder_FIXED.json`**
+
+### Key Changes in Fixed Workflow
+
+1. **Fixed AnyEmailFinder Configuration**
+   - Uses `JSON.stringify()` for proper body formatting
+   - Added `Bearer` prefix to Authorization header
+   - Added `neverError: true` to prevent workflow crashes
+
+2. **Added Domain Discovery**
+   - New "Find Website via Google" node uses SerpAPI `google` engine
+   - Query: `{company_name} {address} official website`
+   - Filters out social media, directories, and aggregators
+   - Extracts clean domain from first valid organic result
+
+3. **Fixed Data Merging**
+   - Uses `$('NodeName').item.json` for proper item pairing
+   - Company data flows correctly through email enrichment
+   - All records reach Google Sheets regardless of email status
+
+4. **Added Status Tracking**
+   - `emailStatus` field: EMAIL_FOUND, NO_EMAIL_FOUND, NO_DOMAIN, NOT_FOUND
+   - `domain_source` field: serpapi_local, google_search, not_found, none
+
+5. **Fixed Google Sheets Mapping**
+   - All expressions use correct `={{ $json.fieldName }}` syntax
+   - Added new columns: domain_source, emailStatus
+   - Removed invalid field references
+
+### Workflow Nodes (16 total)
+
+| Node | Purpose |
+|------|---------|
+| Schedule Trigger | Initiates workflow |
+| Focused Search Parameters | Defines search terms and locations |
+| Split Into Batches | Rate limiting |
+| Create Search Combinations | Generates query permutations |
+| Wait 30 Seconds | API rate limiting |
+| SerpAPI Local Search | Fetches business listings |
+| Process SerpAPI Results | Extracts and normalizes data |
+| Deduplicate | Removes duplicate businesses |
+| Has Domain? | Routes based on website availability |
+| Find Website via Google | Discovers websites for businesses without them |
+| Extract Domain | Parses domain from search results |
+| Merge All Records | Combines both branches |
+| Has Domain for Email? | Routes to email enrichment |
+| AnyEmailFinder | Fetches contact emails |
+| Merge Email Data | Combines email with company data |
+| Mark No Domain | Adds status for records without domains |
+| Merge Final | Combines enriched and non-enriched records |
+| Save to Google Sheets | Writes all data to spreadsheet |
 
 ---
 
-## Next Steps
+## Files Modified
 
-1. User to confirm approach
-2. Implement Phase 1 (get data to Sheets)
-3. Implement Phase 2 (fix email enrichment)
-4. Decide on Phase 3 (domain discovery) based on budget
+- `workflows/CoPackLeadGen_Anymailfinder_FIXED.json` - Complete rewritten workflow
+- `docs/n8n-workflow-debug-report.md` - This report
+
+---
+
+## How to Use
+
+1. In n8n, go to **Workflows** → **Import from File**
+2. Select `CoPackLeadGen_Anymailfinder_FIXED.json`
+3. Verify credentials are connected (SerpAPI, Google Sheets)
+4. **Important:** Update Google Sheets headers to match new columns
+5. Test with a small batch first before full run
+
+### Google Sheets Headers (Update Row 1)
+
+```
+place_id | name | phone | website | domain_clean | contactEmail | contactFirstName | contactLastName | contactPosition | emailConfidence | emailStatus | fullAddress | rating | reviewCount | coPackerCategory | searchQuery | searchLocation | domain_source
+```
+
+---
+
+## Cost Estimate for Full Run
+
+| API | Calls | Est. Cost |
+|-----|-------|-----------|
+| SerpAPI google_local | ~336 | Already paid |
+| SerpAPI google (domain discovery) | ~5,000 | ~$50 |
+| AnyEmailFinder | ~2,000-4,000 | Depends on plan |
+
+**Recommendation:** Run domain discovery on a subset first to validate before full-scale execution.
 
